@@ -248,7 +248,6 @@ ESX.RegisterServerCallback('esx_vehicleshop:buyVehicle', function (source, cb, v
 	end
 
 	if xPlayer.getMoney() >= vehicleData.price then
-		xPlayer.removeMoney(vehicleData.price)
 		cb(true)
 	else
 		cb(false)
