@@ -70,6 +70,7 @@ AddEventHandler('esx_vehicleshop:setVehicleOwned', function (vehicleProps)
 			TriggerClientEvent('esx:showNotification', _source, _U('vehicle_belongs', vehicleProps.plate))
 		end)
 	else
+		TriggerClientEvent('esx:deleteVehicle', _source)
 		print(('esx_vehicleshop: %s attempted to inject vehicle!'):format(xPlayer.identifier))
 	end
 end)
