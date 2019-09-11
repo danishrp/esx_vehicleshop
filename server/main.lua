@@ -46,63 +46,60 @@ MySQL.ready(function()
 end)
 
 RegisterServerEvent('esx_vehicleshop:setVehicleOwned')
-AddEventHandler('esx_vehicleshop:setVehicleOwned', function(vehicleProps)
-    local _source = source
-    local xPlayer = ESX.GetPlayerFromId(_source)
-
-    local found = false
-
-    for i = 1, #Vehicles, 1 do
-        if GetHashKey(Vehicles[i].model) == vehicleProps.model then
-            vehicleData = Vehicles[i]
-            found = true
-            break
-        end
-    end
-
-    if found then
-        if xPlayer.getMoney() >= vehicleData.price then
-            xPlayer.removeMoney(vehicleData.price)
-
-            MySQL.Async.execute('INSERT INTO owned_vehicles (owner, plate, vehicle) VALUES (@owner, @plate, @vehicle)',
-                {
-                    ['@owner'] = xPlayer.identifier,
-                    ['@plate'] = vehicleProps.plate,
-                    ['@vehicle'] = json.encode(vehicleProps)
-                }, function(rowsChanged)
-                    TriggerClientEvent('esx:showNotification', _source, _U('vehicle_belongs', vehicleProps.plate))
-            end)
-        end
-    end
-end)
-
-RegisterServerEvent('esx_vehicleshop:setVehicleOwnedPlayerId')
-AddEventHandler('esx_vehicleshop:setVehicleOwnedPlayerId', function(playerId, vehicleProps)
-    local _source = source
-    local xPlayer = ESX.GetPlayerFromId(playerId)
-	local xPlayerSource = ESX.GetPlayerFromId(_source)
+AddEventHandler('esx_vehicleshop:setVehicleOwned', function (vehicleProps)
+	local _source = source
+	local xPlayer = ESX.GetPlayerFromId(_source)
 
 	local found = false
 
-    for i = 1, #Vehicles, 1 do
+	for i = 1, #Vehicles, 1 do
         if GetHashKey(Vehicles[i].model) == vehicleProps.model then
             vehicleData = Vehicles[i]
-            found = true
+			found = true
             break
         end
     end
 
-    if found and xPlayerSource.job.name == 'cardealer' then
-        MySQL.Async.execute('INSERT INTO owned_vehicles (owner, plate, vehicle) VALUES (@owner, @plate, @vehicle)',
-            {
-                ['@owner'] = xPlayer.identifier,
-                ['@plate'] = vehicleProps.plate,
-                ['@vehicle'] = json.encode(vehicleProps)
-            }, function(rowsChanged)
-                TriggerClientEvent('esx:showNotification', playerId, _U('vehicle_belongs', vehicleProps.plate))
+	if found and xPlayer.getMoney() >= vehicleData.price then
+		MySQL.Async.execute('INSERT INTO owned_vehicles (owner, plate, vehicle) VALUES (@owner, @plate, @vehicle)',
+		{
+			['@owner']   = xPlayer.identifier,
+			['@plate']   = vehicleProps.plate,
+			['@vehicle'] = json.encode(vehicleProps)
+		}, function (rowsChanged)
+			TriggerClientEvent('esx:showNotification', _source, _U('vehicle_belongs', vehicleProps.plate))
 		end)
 	else
+		print(('esx_vehicleshop: %s attempted to inject vehicle!'):format(xPlayer.identifier))
+	end
+end)
+
+RegisterServerEvent('esx_vehicleshop:setVehicleOwnedPlayerId')
+AddEventHandler('esx_vehicleshop:setVehicleOwnedPlayerId', function (playerId, vehicleProps)
+	local _source = source
+	local xPlayer = ESX.GetPlayerFromId(playerId)
+	local xPlayerSource = ESX.GetPlayerFromId(source)
+
+	for i = 1, #Vehicles, 1 do
+        if GetHashKey(Vehicles[i].model) == vehicleProps.model then
+            vehicleData = Vehicles[i]
+			found = true
+            break
+        end
     end
+
+	if found and xPlayerSource.job.name == 'cardealer' then
+		MySQL.Async.execute('INSERT INTO owned_vehicles (owner, plate, vehicle) VALUES (@owner, @plate, @vehicle)',
+		{
+			['@owner']   = xPlayer.identifier,
+			['@plate']   = vehicleProps.plate,
+			['@vehicle'] = json.encode(vehicleProps)
+		}, function (rowsChanged)
+			TriggerClientEvent('esx:showNotification', playerId, _U('vehicle_belongs', vehicleProps.plate))
+		end)
+	else
+		print(('esx_vehicleshop: %s attempted to inject vehicle!'):format(xPlayer.identifier))
+	end
 end)
 
 RegisterServerEvent('esx_vehicleshop:setVehicleOwnedSociety')
@@ -250,6 +247,7 @@ ESX.RegisterServerCallback('esx_vehicleshop:buyVehicle', function (source, cb, v
 	end
 
 	if xPlayer.getMoney() >= vehicleData.price then
+		xPlayer.removeMoney(vehicleData.price)
 		cb(true)
 	else
 		cb(false)
