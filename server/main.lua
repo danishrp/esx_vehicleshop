@@ -61,6 +61,7 @@ AddEventHandler('esx_vehicleshop:setVehicleOwned', function (vehicleProps)
     end
 
 	if found and xPlayer.getMoney() >= vehicleData.price then
+		xPlayer.removeMoney(vehicleData.price)
 		MySQL.Async.execute('INSERT INTO owned_vehicles (owner, plate, vehicle) VALUES (@owner, @plate, @vehicle)',
 		{
 			['@owner']   = xPlayer.identifier,
